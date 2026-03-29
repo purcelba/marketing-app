@@ -94,7 +94,7 @@ def make_marketing_data(
 
     return pd.DataFrame(
         {
-            "Date": dates.normalize(),
+            "Date": dates.normalize(),  # type: ignore[union-attr]
             "marketing_spend": np.round(marketing_spend, 2),
             "revenue": np.round(revenue, 2),
         }
@@ -168,10 +168,7 @@ def main() -> None:
                         mode="lines",
                         name="Fitted curve",
                         line=dict(color="rgba(200,65,40,0.95)", width=2.5),
-                        hovertemplate=(
-                            "Spend=$%{x:,.0f}<br>"
-                            "Fitted R=$%{y:,.0f}<extra></extra>"
-                        ),
+                        hovertemplate=("Spend=$%{x:,.0f}<br>Fitted R=$%{y:,.0f}<extra></extra>"),
                     )
                 )
         fig.update_layout(
@@ -182,11 +179,13 @@ def main() -> None:
             a_fit, b_fit = fit_params
             st.caption(
                 f"Orange line: **nonlinear least-squares fit** "
-                f"`R = {a_fit:,.0f} * (1 - exp(-{b_fit:.4e} * spend))` to the points in this date range."
+                f"`R = {a_fit:,.0f} * (1 - exp(-{b_fit:.4e} * spend))`"
+                " to the points in this date range."
             )
         elif len(filtered) < 5:
             st.caption(
-                "Select a date range with at least **5** days with varied spend to show a fitted curve."
+                "Select a date range with at least **5** days with varied spend"
+                " to show a fitted curve."
             )
         else:
             st.caption(
