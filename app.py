@@ -15,6 +15,12 @@ from scipy.optimize import curve_fit
 
 RNG = np.random.default_rng(42)
 
+# Chart colors (blue theme)
+SCATTER_PALETTE = px.colors.sequential.Blues[2:]  # skip very light swatches for contrast
+FIT_LINE = "rgba(37, 99, 235, 0.95)"  # blue-600
+LINE_SPEND = "#1d4ed8"  # blue-700
+LINE_REVENUE = "#60a5fa"  # blue-400
+
 # --- Synthetic data: diminishing returns R ≈ R_max * (1 - exp(-k * S)) + noise ---
 R_MAX = 180_000.0
 # Larger k => revenue approaches R_max faster (stronger saturation at a given spend).
@@ -141,6 +147,7 @@ def main() -> None:
             x="marketing_spend",
             y="revenue",
             color=filtered["Date"].dt.strftime("%Y-%m"),
+            color_discrete_sequence=SCATTER_PALETTE,
             hover_data={"Date": "|%Y-%m-%d", "marketing_spend": ":$,.0f", "revenue": ":$,.0f"},
             labels={
                 "marketing_spend": "Marketing spend ($)",
@@ -167,7 +174,7 @@ def main() -> None:
                         y=fitted_revenue(s_grid, a_fit, b_fit),
                         mode="lines",
                         name="Fitted curve",
-                        line=dict(color="rgba(200,65,40,0.95)", width=2.5),
+                        line=dict(color=FIT_LINE, width=2.5),
                         hovertemplate=("Spend=$%{x:,.0f}<br>Fitted R=$%{y:,.0f}<extra></extra>"),
                     )
                 )
@@ -178,7 +185,7 @@ def main() -> None:
         if fit_params is not None:
             a_fit, b_fit = fit_params
             st.caption(
-                f"Orange line: **nonlinear least-squares fit** "
+                f"Blue curve: **nonlinear least-squares fit** "
                 f"`R = {a_fit:,.0f} * (1 - exp(-{b_fit:.4e} * spend))`"
                 " to the points in this date range."
             )
@@ -192,7 +199,7 @@ def main() -> None:
                 "Could not fit a saturation curve to the current selection "
                 "(try widening the date range or check for degenerate spend values)."
             )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     with tab_ts:
         daily = filtered.sort_values("Date")
@@ -201,12 +208,16 @@ def main() -> None:
             x="Date",
             y=["marketing_spend", "revenue"],
             labels={"value": "Amount ($)", "Date": "Date", "variable": "Series"},
+            color_discrete_map={
+                "marketing_spend": LINE_SPEND,
+                "revenue": LINE_REVENUE,
+            },
         )
         fig2.update_layout(height=420, legend_title_text="")
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, width="stretch")
 
     with st.expander("Preview data"):
-        st.dataframe(filtered, use_container_width=True, hide_index=True)
+        st.dataframe(filtered, width="stretch", hide_index=True)
 
 
 if __name__ == "__main__":
